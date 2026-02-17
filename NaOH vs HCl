@@ -1,0 +1,105 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# -----------------------------
+# STUDENT INPUT
+# -----------------------------
+C_HCl = float(input("Enter concentration of HCl (N): "))
+C_NaOH = float(input("Enter concentration of NaOH (N): "))
+
+V_HCl = 20  # mL taken in beaker
+V_water = 20  # dilution
+V_total_initial = V_HCl + V_water
+
+# NaOH added from burette
+V_NaOH_added = np.arange(0, 30, 0.5)
+
+# Ionic conductivities (relative)
+lambda_H = 350
+lambda_OH = 200
+lambda_Na = 50
+lambda_Cl = 75
+
+conductance = []
+
+# Initial moles of HCl
+moles_H_initial = C_HCl * V_HCl / 1000
+
+# -----------------------------
+# CONDUCTANCE CALCULATION
+# -----------------------------
+for Vb in V_NaOH_added:
+    moles_OH_added = C_NaOH * Vb / 1000
+
+    if moles_OH_added < moles_H_initial:
+        H_remaining = moles_H_initial - moles_OH_added
+        OH_excess = 0
+    else:
+        H_remaining = 0
+        OH_excess = moles_OH_added - moles_H_initial
+
+    Na = moles_OH_added
+    Cl = moles_H_initial
+
+    V_total = (V_total_initial + Vb) / 1000
+
+    k = (lambda_H * H_remaining +
+         lambda_OH * OH_excess +
+         lambda_Na * Na +
+         lambda_Cl * Cl) / V_total
+
+    conductance.append(k)
+
+conductance = np.array(conductance)
+
+# -----------------------------
+# FIND EQUIVALENCE POINT
+# -----------------------------
+eq_index = np.argmin(conductance)
+V_eq = V_NaOH_added[eq_index]
+
+# -----------------------------
+# GRAPH
+# -----------------------------
+plt.figure(figsize=(8,5))
+plt.plot(V_NaOH_added, conductance, 'o-', label="Conductance")
+plt.axvline(V_eq, linestyle='--', label=f"End point = {V_eq:.2f} mL")
+
+plt.xlabel("Volume of NaOH added (mL)")
+plt.ylabel("Conductance (Ohm⁻¹)")
+plt.title("Conductometric Titration: NaOH vs HCl")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# -----------------------------
+# CALCULATIONS (AS PER RECORD)
+# -----------------------------
+# N1 V1 = N2 V2
+# N1 = NaOH, V1 = NaOH at equivalence
+# N2 = HCl, V2 = HCl taken (20 mL)
+
+N1 = C_NaOH
+V1 = V_eq
+V2 = V_HCl
+
+N2_calculated = (N1 * V1) / V2
+
+# Strength of HCl (g/L)
+Eq_wt_HCl = 36.45
+Strength_HCl_g_per_L = N2_calculated * Eq_wt_HCl
+
+# Amount of HCl in given solution (as in your sheet)
+Amount_HCl_in_given = (Strength_HCl_g_per_L * V2) / 1000
+
+# -----------------------------
+# OUTPUT
+# -----------------------------
+print("\n------ RESULTS ------")
+print(f"Volume of NaOH at equivalence (V1) = {V1:.2f} mL")
+print(f"Strength of NaOH (N1) = {N1:.4f} N")
+print(f"Volume of HCl taken (V2) = {V2} mL")
+
+print(f"\nStrength of HCl (N2) = {N2_calculated:.4f} N")
+print(f"Strength of HCl = {Strength_HCl_g_per_L:.4f} g/L")
+print(f"Amount of HCl in given solution = {Amount_HCl_in_given:.4f} g")
